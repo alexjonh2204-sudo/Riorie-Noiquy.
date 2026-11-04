@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#101827">
+<title>RioRise | Bộ Nội Quy Máy Chủ</title>
+<style>
+:root{--bg:#0b1220;--panel:#121d2e;--panel2:#18263b;--line:#293951;--text:#e8eef7;--muted:#9fb0c6;--red:#ff626b;--blue:#69a9ff;--green:#54d6a0}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(145deg,#0b1220,#111d30 55%,#0b1220);color:var(--text);font:15px/1.65 system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+header{padding:38px 18px 28px;text-align:center;border-bottom:1px solid var(--line);background:radial-gradient(ellipse at top,#1c3557 0,transparent 68%)}
+.brand{display:inline-flex;align-items:center;gap:9px;color:#9fc8ff;font-weight:800;letter-spacing:.16em;font-size:12px}
+h1{font-size:clamp(28px,5vw,44px);line-height:1.15;margin:12px 0 8px}
+header p{margin:0;color:var(--muted)}
+.wrap{max-width:1100px;margin:auto;padding:22px 16px 60px}
+.toolbar{position:sticky;top:0;z-index:5;background:#0d1726ed;backdrop-filter:blur(12px);padding:12px 0;border-bottom:1px solid var(--line)}
+.searchrow{display:flex;gap:9px;max-width:1100px;margin:auto;padding:0 16px}
+input,select{min-width:0;background:var(--panel);border:1px solid var(--line);border-radius:12px;color:var(--text);padding:13px 14px;font:inherit;outline:none}
+input{flex:1}input:focus,select:focus{border-color:var(--blue);box-shadow:0 0 0 3px #69a9ff20}
+.stats{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0;color:var(--muted);font-size:13px}
+.pill{padding:5px 10px;border:1px solid var(--line);border-radius:99px;background:var(--panel)}
+.layout{display:grid;grid-template-columns:230px minmax(0,1fr);gap:18px}
+nav{align-self:start;position:sticky;top:84px;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:14px}
+nav strong{display:block;margin:0 0 8px;color:#c9d8eb}
+nav a{display:block;color:var(--muted);text-decoration:none;padding:7px 9px;border-radius:8px;font-size:13px}
+nav a:hover{background:var(--panel2);color:white}
+.chapter{margin:0 0 22px;scroll-margin-top:90px}
+.chapter h2{font-size:20px;margin:0 0 12px;padding:13px 15px;background:linear-gradient(90deg,#1a3455,#152238);border:1px solid var(--line);border-radius:13px}
+.rule{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:16px;margin:10px 0;scroll-margin-top:90px}
+.rule h3{font-size:16px;line-height:1.4;margin:0 0 4px}
+.meta{font-size:12px;color:var(--muted);margin-bottom:9px}
+.rule p{margin:7px 0;color:#d9e3f0}
+.penalty{color:var(--red)!important;font-weight:750;margin-top:10px!important}
+.missing{border-style:dashed;color:var(--muted)}
+.empty{display:none;text-align:center;padding:30px;color:var(--muted);background:var(--panel);border:1px dashed var(--line);border-radius:14px}
+footer{text-align:center;color:var(--muted);font-size:12px;padding:25px 10px;border-top:1px solid var(--line)}
+@media(max-width:760px){.layout{grid-template-columns:1fr}nav{position:static;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2px}nav strong{grid-column:1/-1}.searchrow{flex-wrap:wrap}select{width:100%}}
+</style>
+</head>
+<body>
+<header><div class="brand">✦ RIORISE ROLEPLAY</div><h1>BỘ NỘI QUY MÁY CHỦ</h1><p>Tra cứu quy định, hành vi vi phạm và hình thức xử phạt</p></header>
+<div class="toolbar"><div class="searchrow"><input id="q" type="search" placeholder="Tìm theo số điều, mã luật hoặc nội dung… (VD: 3.32, DM, Safe Zone, Ban)"><select id="chapter"><option value="">Tất cả chương</option></select></div></div>
+<main class="wrap">
+<div class="stats"><span class="pill" id="count">Đang tải điều luật…</span><span class="pill">Hình phạt được đánh dấu màu đỏ</span><span class="pill">Tìm kiếm tức thì</span></div>
+<div class="layout"><nav><strong>MỤC LỤC</strong><div id="toc"></div></nav><div id="content"></div></div>
+<div class="empty" id="empty">Không tìm thấy điều luật phù hợp. Hãy thử số điều hoặc từ khóa khác.</div>
+</main>
+<footer>RioRise Roleplay · Bộ nội quy tổng hợp từ nội dung được cung cấp. Các điều chưa được gửi đầy đủ được đánh dấu rõ ràng.</footer>
+<script>
+const chapters = [
+["01","Chính sách tài khoản trò chơi",[
+["1.1","Xác nhận và chấp thuận nội quy","Khi tạo tài khoản, người chơi xác nhận đã đọc, hiểu và chấp thuận toàn bộ nội quy máy chủ, gồm quy tắc chung, quy tắc RP, hình phạt, hành vi bị cấm và các cập nhật trong tương lai.",""],
+["1.2","Trách nhiệm bảo mật tài khoản","Ban quản trị không chịu trách nhiệm về tài khoản, vật phẩm, tài sản, bất động sản hoặc hàng hóa bị mất do hack, lừa đảo, chia sẻ tài khoản, sơ suất hay lỗ hổng bảo mật. Người chơi nên bảo vệ thông tin đăng nhập và bật xác thực bổ sung.",""],
+["1.3","Mua bán, trao đổi hoặc cho mượn tài khoản","Nghiêm cấm chuyển nhượng, mua bán, trao đổi hoặc cho bên thứ ba mượn tài khoản trò chơi.","Cấm vĩnh viễn (Permaban)."],
+["1.4","Tên nhân vật không phù hợp","Cấm tên mang tính gợi dục hoặc tôn vinh hoạt động tội phạm; tài khoản có thể bị khóa tự động không cần báo trước. Một số tên như “Th”, “Vulgo”, “Mnr” và biệt danh phổ biến được phép nếu phù hợp.","Cấm 7 ngày."],
+["1.5","Tên nhân vật tục tĩu, xúc phạm","Cấm biệt danh tục tĩu, lăng mạ hoặc xúc phạm, kể cả viết tắt hay biến thể nhằm né kiểm duyệt.","Cấm 7 ngày."],
+["1.6","Tên trùng hoặc giả mạo người khác","Cấm tên trùng, quá giống hoặc bắt chước người chơi, quản trị viên hay đội ngũ qua cách viết, phát âm hoặc định dạng. Biện pháp được nêu: cảnh cáo; buộc đổi tên ngay; Permaban nếu cố ý giả mạo admin/đội ngũ hoặc gây hại người khác. Văn bản gốc đồng thời nêu hình phạt cấm 10 ngày.","Cấm tham gia 10 ngày; các biện pháp khác như nội dung điều khoản nêu."],
+["1.17","CC – Cutting Corners","Cấm dùng ô tô/xe máy đi tắt qua đồng ruộng, vỉa hè, bãi cỏ, địa hình gồ ghề hoặc ngoài đường quy định để rút ngắn đường hay tạo lợi thế. Áp dụng trong mọi tình huống: hoạt động chính quyền/tội phạm, truy đuổi, nhiệm vụ, giao tranh, bỏ trốn và can thiệp của cảnh sát.","Tù 15 phút."],
+["1.18","ABUSE – Lạm dụng quyền hạn cảnh sát","Cấm lạm dụng quyền hạn hoặc chức vụ, trái tiêu chuẩn RP và nội quy máy chủ.","Tù 60 phút / Ban 20–30 ngày."],
+["1.19","DMEDIC – Tấn công nhân viên y tế","Cấm tấn công hoặc giết nhân viên y tế đang làm nhiệm vụ.","Ban tài khoản 20 ngày / IP ban."],
+["1.20","Ban kèm yêu cầu CONTACT SUPPORT","Quản trị viên có thể ban kèm yêu cầu “CONTACT SUPPORT” khi cần khiếu nại/xác minh chính thức: người chơi vắng mặt trên máy chủ/Discord; không thể liên hệ nhưng có hành vi đáng ngờ hoặc bằng chứng; hoặc vụ việc cần bộ phận hỗ trợ xem xét. Đây là biện pháp phòng ngừa; người chơi cần liên hệ hỗ trợ để xác minh và có thể được xem xét lại hình phạt.","Ban tài khoản 365 ngày."]
+]],
+["02","Các hình thức xử phạt",[
+["2.1","Verbal Warning – Cảnh cáo bằng lời","Quản trị viên nhắc nhở trực tiếp về hành vi chưa phù hợp, hướng dẫn người chơi điều chỉnh trước khi áp dụng chế tài nặng hơn.",""],
+["2.2","Kick – Đá khỏi máy chủ","Quản trị viên ngắt kết nối người chơi ngay lập tức; là biện pháp quản lý/phòng ngừa, không phải hình phạt cuối cùng. Có thể áp dụng khi gây rối HP/bệnh viện; VOIP ồn ào hoặc chiếm kênh; phá tương tác RP; vi phạm nhẹ; AFK chặn hàng chờ/khu dịch vụ/sự kiện; hoặc phá rối hoạt động của admin.",""],
+["2.3","Mute – Cấm chat","Chặn chat văn bản trong thời gian nhất định; áp dụng với spam, xúc phạm, độc hại, lạm dụng chat hoặc vi phạm quy tắc giao tiếp.","Mute 40 phút."],
+["2.4","Jail – Tống giam","Cách ly người chơi trong máy chủ trong một khoảng thời gian; áp dụng với vi phạm nghiêm trọng hoặc tái phạm.",""],
+["2.5","Warn – Cảnh cáo chính thức","Cảnh cáo chính thức với vi phạm nghiêm trọng, có thể kèm hạn chế tạm thời. Khi nhận Warn, tự động rời faction; thời gian chờ 24 giờ chơi game mới được gia nhập lại; Warn lưu trong hồ sơ. Đủ 3 Warn, tài khoản tự động khóa 10 ngày.","Khóa tài khoản 10 ngày khi đủ 3 Warn."],
+["2.6","Ban – Cấm chơi","Khóa tài khoản trong thời hạn hoặc vĩnh viễn tùy mức độ. IP Ban chặn thiết bị hoặc IP được sử dụng, ngăn truy cập bất kể tài khoản. Áp dụng với hack, lừa đảo, lạm dụng hệ thống hoặc tái phạm.","Theo mức độ; có thể Ban hoặc IP Ban."],
+["2.7","Permaban – Cấm vĩnh viễn","Khóa tài khoản vĩnh viễn, cấm truy cập máy chủ vô thời hạn; áp dụng với vi phạm cực kỳ nghiêm trọng hoặc tái phạm.","Cấm vĩnh viễn."],
+["2.8","Report Mute – Cấm sử dụng báo cáo","Chặn quyền sử dụng chức năng report để báo cáo sự cố, hỏi đáp hoặc khiếu nại khi người chơi lạm dụng, spam hoặc dùng sai mục đích.","Mute 40 phút."],
+["2.9","Account Reset – Đặt lại tài khoản","Xóa toàn bộ tài sản, vật phẩm và tiến trình, đưa tài khoản về trạng thái ban đầu. Bao gồm tiền ngân hàng/ví, số điện thoại, ngoại hình/skin, phương tiện và biển số tùy chỉnh, bất động sản, công ty vận tải/xây dựng, doanh nghiệp/cơ sở kinh doanh, trạm xăng, quan hệ gia đình (tự hủy) và toàn bộ kho đồ. Sau reset chỉ còn tài khoản, không còn tài sản/giá trị/quan hệ.","Reset toàn bộ tài sản và tiến trình."]
+]],
+["03","Quy tắc nhập vai chung",[
+["3.1","Nội dung điều luật (chưa có tiêu đề gốc)","Trong tương tác ảnh hưởng trực tiếp đến nhân vật. Ví dụ: AFK khi cảnh sát can thiệp/xung đột; thoát game để tránh chết, bắt giữ, bắt cóc hoặc kết quả bất lợi; phớt lờ tương tác; vào nội thất/Safe Zone/Green Zone giữa đấu súng để trốn; dùng lý do IC/OOC để né tình huống.","Theo vi phạm cụ thể; thoát game có thể xử lý như CL."],
+["3.2","USE – Sử dụng sai phương tiện","Cấm dùng xe công/faction cho mục đích cá nhân ngoài giờ hoặc không được phép; cũng cấm dùng xe cá nhân làm nhiệm vụ tổ chức để giành lợi thế/thay xe công.","Tù 40 phút."],
+["3.3","Quảng cáo thương mại","Cấm quảng cáo máy chủ game khác, Discord bên ngoài, website/nền tảng không liên quan, YouTube/livestream/tuyển dụng, mã khuyến mãi hoặc nội dung thương mại nhằm kiếm lợi hay lôi kéo người chơi khỏi RioRise.","Ban 10 ngày; có thể IP Ban tùy mức độ/ý định."],
+["3.4","Trao đổi lợi ích gắn với donation","Cấm trao đổi/bán lợi ích từ donation lấy tiền, vật phẩm, xe, bất động sản, dịch vụ hoặc tài nguyên trong game. Donation chỉ hỗ trợ dự án, không phải tiền RP.","Permaban + Account Reset."],
+["3.5","Lừa dối quản trị viên","Cấm làm giả bằng chứng, trình bày sai, che giấu thông tin hoặc thao túng quản trị viên/máy chủ. Làm giả bằng chứng có thể khiến tài khoản vi phạm và các tài khoản khác cùng sở hữu bị Permaban theo quyết định admin. Dịch vụ trả phí/miễn phí nhằm vượt quy trình admin hoặc tạo lợi thế (ví dụ vượt khảo sát, hỗ trợ bài kiểm tra/phỏng vấn/tuyển chọn) có thể bị loại vĩnh viễn khỏi dự án.","Ban 5 ngày; làm giả bằng chứng có thể Permaban; dịch vụ vượt quy trình: Permaban."],
+["3.6","Mua bán lợi ích dự án được cấp miễn phí","Cấm mua bán/trao đổi mã thưởng, mã khuyến mãi, voucher, giải thưởng, tiền thưởng, vật phẩm từ sự kiện/khuyến mãi/hoạt động đặc biệt của admin. Không được dùng làm nguồn tiền/lợi nhuận trong hoặc ngoài máy chủ.","Mute 40 phút; Ban 1–5 ngày tùy mức độ."],
+["3.7","AFK trên máy chủ","Cấm AFK ở bất kỳ đâu trên máy chủ.","Kick ngay lập tức."],
+["3.8","Ngủ tại nơi công cộng/đông người","Cấm dùng lệnh hoặc hoạt ảnh ngủ tại nơi công cộng, đông người, nơi làm việc hoặc bối cảnh gây gián đoạn máy chủ/RP.","Kick ngay lập tức."],
+["3.9","Tên không phù hợp cho vật phẩm tùy chỉnh","Cấm đặt tên xúc phạm, tục tĩu, chính trị, tôn giáo hoặc vi phạm cộng đồng cho vũ khí, xe, quần áo, ba lô và vật phẩm tùy chỉnh; áp dụng cả tên gia đình, tổ chức, doanh nghiệp, nhóm.","Khóa tài khoản 1 ngày; tái phạm khóa vĩnh viễn."],
+["3.10","Che giấu hoặc khai thác lỗi","Cấm che giấu, khai thác, phát tán hoặc chia sẻ bug. Phải báo ngay lỗi/kỹ thuật cho admin.","Khóa tài khoản 3–5 ngày; tùy mức độ có thể khóa vĩnh viễn/IP Ban."],
+["3.11","Phá hoại kinh tế máy chủ","Cấm mua bán tiền/vật phẩm game bằng tiền thật qua người chơi hoặc trang bên thứ ba; chỉ mua tiền/lợi ích đặc biệt qua website chính thức. Cả việc tìm hiểu, đề nghị hoặc thương lượng cũng vi phạm. Cấm phân phát vô lý tiền, vật phẩm, tài sản, xe chở tiền bọc thép, mã hoặc tài nguyên ảnh hưởng kinh tế.","IP Ban 365 hoặc 3650 ngày / Permaban / Account Reset."],
+["3.12","Chưa được cung cấp","Nội dung điều khoản 3.12 chưa được gửi. Điều 3.15 có dẫn chiếu đến điều này; cần văn bản gốc để bổ sung chính xác.","Chưa có dữ liệu."],
+["3.13","Vi phạm nội quy lặp lại","Từ 3 lần vi phạm nội quy trong 7 ngày; nhiều loại vi phạm khác nhau vẫn được tính. Vi phạm tiếp theo được phân loại là abuse.","Ban 7 ngày."],
+["3.14","Phá hoại dự án","Cấm trực tiếp/gián tiếp gây hại trong hoặc ngoài máy chủ, gây bất ổn, bôi nhọ, kích động người khác vi phạm hoặc làm tổn hại danh tiếng/tính toàn vẹn dự án.","Permaban sau khi tham vấn STAFF."],
+["3.15","Bán tài sản/tài khoản game lấy tiền thật","Cấm cố bán, mua, trao đổi hoặc thương lượng tài sản/tài khoản game lấy tiền thật; hành vi vẫn tính dù giao dịch chưa hoàn tất. Điều khoản gốc dẫn chiếu Điều 3.12; chế tài tùy mức độ/tái phạm.","Khóa tài khoản 30 ngày, IP Ban hoặc khóa vĩnh viễn."],
+["3.16","Thao túng danh tiếng gia đình và bao che","Cấm mua bán/chuyển nhượng/thao túng danh tiếng gia đình; lãnh đạo faction/family bao che người vi phạm/gian lận, né chế tài hoặc bảo vệ người vi phạm.","Reset gia đình."],
+["3.17","Giao tiếp OOC","Cấm giao tiếp OOC, trừ khi admin yêu cầu trả lời câu hỏi quan trọng ngoài IC. IC là hành động/lời thoại/quyết định trong vai; OOC là việc ngoài vai như chuyện cá nhân, luật, kỹ thuật, Discord, đời thực. Trong RP phải giao tiếp/hành động IC.","Tù 30 phút."],
+["3.18","Xúc phạm hoặc đe dọa admin","Cấm thiếu tôn trọng, xúc phạm, cư xử không phù hợp hoặc đe dọa đội ngũ admin.","Ban 5 ngày; tái phạm xúc phạm có thể IP Ban."],
+["3.19","VPA – Quay lại nơi giao tranh","Cấm quay lại địa điểm/tình huống đã chết; phải chờ 15 phút. Trong xâm lược và bình định chỉ được quay lại sau khi hoạt động kết thúc hoàn toàn.","Jail 30 phút / Ban 1 ngày."],
+["3.20","ASF – Hành động trong Safe Zone","Cấm mọi hành động thù địch trong Khu vực An toàn được chỉ định.","Jail 30 phút / Ban 1 ngày."],
+["3.21","Anti-RP hoặc gây ảnh hưởng tiêu cực","Cấm hành động Anti-RP hoặc hành vi ảnh hưởng tiêu cực đến người chơi khác.","Theo vụ việc cụ thể."],
+["3.22","Rời tổ chức/công ty","Sau khi bị khai trừ hoặc rời tổ chức/công ty, không được gia nhập tổ chức/công ty khác trong 24 giờ.","Chưa nêu hình phạt."],
+["3.23","Force RP","Cấm ép buộc RP hoặc khởi tạo hành động không phù hợp thực tế RP. Ví dụ đi lại với vũ khí để thu hút chú ý, thách thức/khiêu khích nhân vật hoặc cảnh sát.","Jail 40 phút, Ban 5 ngày hoặc IP Ban."],
+["3.24","Cướp bóc dẫn đến cái chết","Cái chết của người chơi trong vụ cướp được xem là DM; không được giết người đã tuân thủ yêu cầu của kẻ cướp.","Jail 60 phút."],
+["3.25","Giả mạo admin","Cấm giả danh quản trị viên khi thực tế không giữ chức vụ đó.","Ban 5–15 ngày hoặc IP Ban."],
+["3.26","Tiếng ồn bên ngoài làm gián đoạn liên lạc","Cấm tiếng ồn nền khi VOIP, âm thanh méo nghiêm trọng do micro kém, cố ý phá rối hoặc hành vi làm gián đoạn như la hét/ngắt lời.","Voice mute 40 phút."],
+["3.27","Phát nhạc qua VoIP","Cấm phát nhạc qua VoIP tại khu vực không được cho phép rõ ràng.","Voice mute 40 phút."],
+["3.28","Spam","Cấm spam trong chat dịch vụ, chat trong game hoặc bất kỳ kênh giao tiếp nào.","Voice mute 40 phút."],
+["3.29","Xúc phạm người chơi hoặc người thân","Cấm xúc phạm người chơi khác hoặc người thân của họ.","Cấm chat và tù 30 phút; trường hợp nghiêm trọng Ban 2 ngày."],
+["3.30","Dark RP","Cấm Dark RP/nhập vai tiêu cực, độc hại, gồm quấy rối, phân biệt đối xử, quấy rối tình dục, phân biệt chủng tộc, ngược đãi tinh thần, kỳ thị người đồng tính và hành vi độc hại khác.","Ban 10–30 ngày; trường hợp nghiêm trọng Ban 30–60 ngày kèm IP Ban."],
+["3.31","Lạm dụng /me, /do, /try","/me mô tả hành động của chính nhân vật; /do mô tả tình huống/trạng thái/sự kiện xung quanh; /try dùng cho hành động có xác suất thành công/thất bại. Cấm dùng /me để ép hành động lên người khác; /do để khẳng định kết quả không cho người khác phản ứng; /try cho hành động bất khả thi hoặc ép kết quả. Ví dụ đúng/sai được giữ theo nội dung người chơi cung cấp.","Mute 40 phút."],
+["3.32","RP thiếu tôn trọng sau khi thắng giao tranh","Cấm chế giễu/làm nhục người bị thương hoặc hành vi nghiêm trọng hạ thấp nhân phẩm (ví dụ tiểu tiện lên nhân vật); cấm ngược đãi tinh thần, phân biệt đối xử, phân biệt giới tính và thiếu tôn trọng. Chế giễu nhẹ điểm yếu nhân vật như “kẻ yếu”, “kẻ nhu nhược” được phép nếu không vượt giới hạn tôn trọng.","Jail 60 phút / Ban 1 ngày."],
+["3.33","Lạm dụng viết hoa","Cấm lạm dụng Caps Lock khi gõ trong bất kỳ kênh chat nào.","Mute 10 phút."],
+["3.34","Rút quá mức kho phe phái/gia đình","Cấm làm trống kho phe phái hoặc gia đình bằng cách rút lượng lớn tài nguyên/tài sản vượt hạn mức.","Jail 60 phút; nếu không hoàn trả: Ban 30 ngày hoặc IP Ban."]
+]],
+["04","Các quy tắc RP cốt lõi (RP Bible Rules)",[
+["4.1","MDM – Mass Deathmatch","Cấm giết hoặc gây thương tích cho từ 3 người chơi trở lên mà không có lý do RP chính đáng.","Jail 60 phút, hạn chế sử dụng vũ khí / Ban 3–7 ngày."],
+["4.2","PVP không có lý do","Cấm chủ động bắt đầu PVP, nổ súng hoặc giết người chơi khi không có lý do RP chính đáng và tương tác trước đó. Giao tranh cần bối cảnh hợp lý; cấm tấn công cho vui, trả thù không bối cảnh, mâu thuẫn ngoài game hoặc chỉ vì thuộc tổ chức/family khác. PVP bị cấm trong Safe Zone.","Lần 1: Jail 60 phút; lần 2 trong ngày: Jail 120 phút; lần 3: Ban 3 ngày; PVP trong Safe Zone: Ban 3 ngày."],
+["4.3","VDM – Vehicle Deathmatch","Cấm cố ý lái xe cán người chơi khác.","Jail 60 phút / Ban 1–5 ngày."],
+["4.4","MG – Metagaming","Cấm dùng thông tin thu thập ngoài trò chơi để trục lợi hoặc gây hại người khác. Cấm dùng biểu tượng cảm xúc như “=D” trong khung chat IC.","Jail 60 phút / Ban 1–3 ngày."],
+["4.5","CL – Combat Log","Cấm thoát game trong tình huống đang diễn ra nhằm tạo lợi thế hoặc tránh bị bắt cóc, giết hay bắt giữ.","Jail 60 phút / Ban 1–3 ngày."],
+["4.6","DM – Deathmatch","Cấm giết hoặc gây thương tích cho người chơi khác mà không có lý do RP chính đáng.","Jail 60 phút / Ban 1–3 ngày."],
+["4.7","RK – Revenge Kill","Cấm giết/gây thương tích để trả thù việc bản thân bị giết ở kiếp/lần sống trước.","Jail 60 phút / Ban 1–3 ngày."],
+["4.8","SK – Spawn Kill","Cấm giết/gây thương tích trong lãnh thổ tổ chức/phe phái hoặc tại điểm hồi sinh người chơi.","Jail 60 phút / Ban 1–5 ngày."],
+["4.9","TK – Team Kill","Cấm giết/gây thương tích cho thành viên cùng phe hoặc phe đồng minh mà không có lý do RP chính đáng.","Jail 40 phút / Ban 1–2 ngày."],
+["4.10","SAAV – Không coi trọng tính mạng","Cấm không coi trọng tính mạng nhân vật, chọn cái chết thay vì hợp tác với tình huống đang diễn ra.","Jail 40 phút / Ban 1–3 ngày."],
+["4.11","Flaming – Công kích/chửi bới","Cấm dùng ngôn từ xúc phạm, lăng mạ hoặc thù ghét nhắm vào người chơi khác trong quá trình RP.","Tùy mức độ: Jail + Mute 60 phút / Ban 1–30 ngày."],
+["4.12","KOS – Kill On Sight","Cấm giết người chơi thuộc tổ chức, phe phái hoặc gia đình ngay khi nhìn thấy mà không có lý do/bối cảnh RP hợp lý.","Jail 60 phút / Ban 1–5 ngày."],
+["4.13","PK – Player Kill","Cái chết nhân vật khiến người chơi mất ký ức về kẻ giết mình và sự kiện dẫn đến cái chết; cấm sử dụng thông tin đó sau khi bị PK.","Jail 60 phút / Ban 1–5 ngày."],
+["4.14","RPFW – Roleplay For The Win","Cấm RP chỉ nhằm trục lợi/thắng bằng mọi giá, bỏ qua hậu quả hoặc logic thực tế. Ví dụ bán vị trí/đặc quyền chung; chạy vào vùng an toàn giữa tình huống; lợi dụng luật để hại người khác/tạo lợi thế; cất xe công ở nơi riêng tư để tạo lợi thế.","Jail 60 phút / Ban 1–5 ngày."],
+["4.15","MIX – Trộn lẫn thông tin","Cấm đưa vấn đề/thông tin không liên quan đến RP vào tình huống đang diễn ra, làm mất tính nhập vai.","Jail 60 phút / Ban 1–5 ngày."],
+["4.16","Tạo nhiều tài khoản để chuyển tiền","Cấm tạo/dùng nhiều tài khoản để chuyển tiền hoặc tạo lợi thế cho tài khoản chính; gồm lợi dụng sự kiện/giao dịch, phối hợp tài khoản để gây hại, gây hỗn loạn hoặc phá hoại máy chủ/cộng đồng.","Ban 30 ngày / IP Ban / Permaban."],
+["4.17","AAP – Can thiệp hành động đang diễn ra","Cấm cố ý cản trở hành động đang được thực hiện; ví dụ đâm xe vào người khác, la hét qua VOIP hoặc spam chat trong tình huống can thiệp.","Jail 60 phút / Ban 1–3 ngày."],
+["4.18","DMA – Dùng xe gây sát thương/tử vong","Cấm gây hư hại phương tiện công cộng hoặc tư nhân mà không có lý do chính đáng.","Kick / Jail 30 phút."],
+["4.19","NRA – Hành động sai bối cảnh","Cấm sử dụng vũ khí tại nơi công cộng như bệnh viện, đồn cảnh sát, tòa thị chính, chợ, nhà thờ, khu đấu giá, nơi làm việc và quảng trường.","Jail 20 phút."],
+["4.20","AI – Hành động bất thường","Cấm xâm nhập/lảng vảng quanh khu vực riêng tư của người chơi khác (nhà ở, biệt thự) nhằm ép tương tác và làm gián đoạn RP.","Ban 10 ngày; nếu cả family tham gia: cảnh cáo hoặc IP Ban."],
+["4.21","INA – Xâm nhập trái phép","Cấm xâm nhập địa điểm như trụ sở tổ chức tội phạm hoặc tập đoàn khi chưa được Ban Quản trị cho phép trước.","Ban 5 ngày."],
+["4.22","FAIL – Hành động sai quy tắc","Cấm thực hiện thao tác không đúng quy định đã thiết lập.","Jail 60 phút / Ban 3–5 ngày / Cảnh cáo."],
+["4.23","TSC – Chuyển giao không có sự đồng ý","Cấm chuyển giao vật phẩm cho quản trị viên khi chưa có sự đồng ý của họ.","Jail 10 phút."],
+["4.24","ECI – Hướng dẫn lệnh sai","Cấm hướng dẫn lệnh sai cho người chơi khác nhằm trục lợi cá nhân.","Jail 60 phút / Ban 1–5 ngày."],
+["4.25","Vi phạm TOS","Vi phạm Điều khoản Sử dụng Cộng đồng; chế tài TOS được áp dụng sau khi hệ thống xác minh hành vi vi phạm.","Cấm vĩnh viễn."]
+]],
+["05","Quy định về báo cáo và hình phạt",[
+["5.1","Định dạng và chất lượng báo cáo","Báo cáo không theo định dạng quy định, thiếu rõ ràng hoặc có bằng chứng chất lượng kém sẽ không được chấp nhận.",""],
+["5.2","Người báo cáo cũng vi phạm Anti-RP","Nếu người gửi báo cáo xuất hiện trong ảnh/video với hành vi Anti-RP, họ cũng bị xử phạt cùng người bị báo cáo. Ví dụ báo cáo SAAV trong khi bản thân cũng SAAV.",""],
+["5.3","Trò chuyện ngoài lề trong kênh báo cáo","Cấm trò chuyện ngoài lề trong kênh chat báo cáo.","Cảnh cáo / Mute trên 10 phút."],
+["5.4","Làm giả bằng chứng tố cáo","Cấm làm giả bằng chứng để tố cáo người chơi khác.","Mức phạt gấp đôi mức phạt người bị tố cáo lẽ ra phải chịu."],
+["5.5","Thời hạn khiếu nại","Thời hạn khiếu nại tính từ ngày áp dụng hình phạt: 1 ngày đối với Jail; 3 ngày đối với Ban. Hết thời hạn, yêu cầu khiếu nại không được chấp nhận.","Không tiếp nhận khiếu nại quá hạn."],
+["5.6","Thời gian xử lý báo cáo Discord","Báo cáo qua Discord có thể xử lý đến 24 giờ nếu đăng ngay tại thời điểm xảy ra sự việc. Báo cáo gửi sau một ngày không được xem xét, trừ trường hợp nghiêm trọng theo quyết định người xét duyệt.",""],
+["5.7","Reset cơ sở kinh doanh khi Ban 30 ngày","Người chơi bị Ban 30 ngày và sở hữu một hoặc nhiều cơ sở kinh doanh thì tất cả tài sản kinh doanh này sẽ bị hệ thống Reset.","Reset toàn bộ cơ sở kinh doanh."]
+]],
+["06","Khu vực an toàn (Safe Zone)",[
+["6.1","Định nghĩa và danh sách Safe Zone","Safe Zone là nơi nghiêm cấm mọi hành vi bạo lực. Bao gồm: tòa nhà chính quyền (Sở Cảnh sát, Bệnh viện, Trường dạy lái xe, Ngân hàng, Tòa thị chính); nơi làm việc cơ bản (Mỏ khai khoáng, Công trường xây dựng, Nông trại); cơ sở kinh doanh (cửa hàng tiện lợi 24/7, quán ăn/quầy đồ ăn nhẹ, cửa hàng quần áo, cửa hàng súng, cửa hàng phụ kiện, trạm xăng, quán bar, đại lý xe hơi giá rẻ, đại lý xe máy & xe đạp, trung tâm dịch vụ, Dragon Casino 4, cửa hàng độ xe).","Cấm mọi hành vi bạo lực."]
+]],
+["07","Quy định về các hoạt động trên đường phố",[
+["7.1","Thời gian và khoảng nghỉ hoạt động đường phố","Hoạt động đường phố chỉ diễn ra từ 08:00 đến 00:00; phải nghỉ tối thiểu 30 phút giữa các lần. Chỉ dành cho tổ chức tội phạm.","Jail 60 phút (4.22 – FAIL)."],
+["7.2","Không cướp người lao động hợp pháp","Cấm cướp người lao động hợp pháp khi đang làm việc: taxi, xe tải, xe buýt, thợ mỏ, nông dân, nhân viên vệ sinh và nghề hợp pháp khác.","Jail 60 phút (4.22 – FAIL)."],
+["7.3","Không nổ súng/bắt giữ thương nhân","Cấm nổ súng hoặc bắt giữ thương nhân trong quá trình thực hiện hành động.","Jail 60 phút (4.22 – FAIL)."],
+["7.4","Số lượng và trang bị phe bắt cóc","Số kẻ bắt cóc phải nhiều hơn số nạn nhân; tất cả người thuộc phe bắt cóc bắt buộc mang theo súng.","Jail 60 phút (4.22 – FAIL)."]
+]],
+["08","Quy định gia đình (các điều đã được cung cấp)",[
+["8.17","Giải thể gia đình","Giải thể gia đình là chế tài theo quyết định đội ngũ hỗ trợ Claudino khi phát hiện thành viên vi phạm nội quy máy chủ nhiều lần.","Reset."],
+["8.18","Tái phạm sau khi gia đình đã bị phạt","Nếu gia đình từng bị phạt, ban quản trị có thể quyết định giải thể thay vì tiếp tục phạt tiền khi tái phạm.","Giải thể gia đình có thể được áp dụng."],
+["8.19","Không giải thể ở lần vi phạm đầu","Thông thường không giải thể gia đình ở lần vi phạm đầu, trừ trường hợp đặc biệt có mức độ nghiêm trọng đòi hỏi biện pháp này.","Ngoại lệ theo mức độ nghiêm trọng."],
+["8.20","Phê duyệt giải thể gia đình","Việc giải thể phải được thống nhất với đội ngũ quản trị (staff) và chỉ thực hiện sau phê duyệt chính thức.","Cần phê duyệt chính thức."],
+["8.21","Giới hạn cảnh báo gia đình","Mỗi gia đình có giới hạn theo loại vi phạm: cảnh báo chính thức [0/3], cảnh báo bằng lời nói [0/5].","Theo dõi cảnh báo."],
+["8.22","Chuyển đổi cảnh báo bằng lời","Khi tích lũy đủ từ 5 cảnh báo bằng lời nói trở lên, tự động chuyển thành 1 cảnh báo chính thức.","1/3 cảnh báo chính thức."],
+["8.23","Đạt 3/3 cảnh báo chính thức","Khi đạt 3/3 cảnh báo chính thức, staff có thể áp dụng phạt tiền đối với gia đình.","Phạt tiền."],
+["8.24","Tái đạt 3 cảnh báo sau khi đã phạt","Nếu gia đình tiếp tục đạt giới hạn 3 cảnh báo chính thức sau khi đã bị phạt tiền, staff có thể phạt tiền lần thứ hai.","Phạt tiền lần hai."],
+["8.25","Thời gian theo dõi vi phạm gia đình","Theo quy định chung, vi phạm gia đình được theo dõi trong khoảng thời gian tối đa 3 tháng.",""],
+["8.26","Mua bán tài sản gia tộc","Cấm mua bán tiền ảo, tài khoản hoặc bất kỳ loại tài sản nào khác liên quan đến gia tộc (family).","Reset gia tộc."],
+["8.27","Đưa người từ máy chủ khác đến để gian lận số lượng","Cấm cố ý đưa người chơi từ máy chủ khác đến chỉ để tham gia chiến tranh gia tộc/chiếm địa bàn mafia nhằm thổi phồng số thành viên và tạo lợi thế không công bằng. Có thể cảnh cáo trực tiếp ngay không cần báo trước.","1/3 cảnh cáo."],
+["8.28","Lừa dối về vật phẩm trong game","Thành viên gia tộc lừa dối người chơi khác về vật phẩm trong trò chơi.","Tối đa 3 lần nhắc nhở bằng lời; có thể nhận cảnh cáo chính thức."],
+["8.29","Xúc phạm ban quản trị hoặc người thân","Cấm xúc phạm ban quản trị hoặc người thân của họ trong game, diễn đàn hoặc kênh nhắn tin chính thức.","1 lần nhắc nhở; tái diễn tính 1/3 cảnh cáo."],
+["8.30","Mass DM trong gia tộc","Khi gia tộc có hơn 3 thành viên cùng thực hiện DM (giết người) cùng lúc.","1/3 cảnh cáo."],
+["8.31","Hành vi không phù hợp tái diễn","Khi thành viên gia tộc tích lũy hơn 5 lần bị mute do hành vi không phù hợp hoặc xúc phạm người khác.","1 lần nhắc nhở; tái diễn nhận cảnh cáo chính thức."],
+["8.32","Chưa được cung cấp","Chưa nhận được nội dung điều khoản 8.32.","Chưa có dữ liệu."],
+["8.33","Giới thiệu RioRise","RioRise là trò chơi mô phỏng cuộc sống lấy bối cảnh Brazil, phát triển để mang lại trải nghiệm nhập vai thú vị và chân thực; các quy tắc nhằm đảm bảo trải nghiệm tốt nhất cho người chơi.",""],
+["8.34","Trách nhiệm đối với hình phạt","Mọi hình phạt/lệnh Ban áp dụng là trách nhiệm của chính người chơi, phát sinh từ vi phạm trực tiếp hoặc gián tiếp các quy tắc.",""]
+]]
+];
+const content=document.getElementById('content'), toc=document.getElementById('toc'), sel=document.getElementById('chapter'), q=document.getElementById('q');
+let total=0;
+chapters.forEach((ch,i)=>{
+ const [num,title,rules]=ch; total+=rules.length;
+ const opt=document.createElement('option');opt.value=num;opt.textContent=`${num} · ${title}`;sel.append(opt);
+ const a=document.createElement('a');a.href=`#chapter-${num}`;a.textContent=`Chương ${parseInt(num,10)} · ${title}`;toc.append(a);
+ const sec=document.createElement('section');sec.className='chapter';sec.id=`chapter-${num}`;sec.dataset.chapter=num;
+ const h=document.createElement('h2');h.textContent=`CHƯƠNG ${num} · ${title}`;sec.append(h);
+ rules.forEach(r=>{
+  const art=document.createElement('article');art.className='rule';art.id=`rule-${r[0]}`;art.dataset.number=r[0];art.dataset.search=(r.join(' ')+' '+title).toLocaleLowerCase('vi');
+  const hh=document.createElement('h3');hh.textContent=`${r[0]} · ${r[1]}`;art.append(hh);
+  const meta=document.createElement('div');meta.className='meta';meta.textContent=`Chương ${parseInt(num,10)} · ${title}`;art.append(meta);
+  const p=document.createElement('p');p.textContent=r[2];art.append(p);
+  const pen=document.createElement('p');pen.className='penalty';pen.textContent='Hình phạt: '+(r[3]||'Chưa nêu trong nội dung được cung cấp.');art.append(pen);
+  sec.append(art);
+ });
+ content.append(sec);
+});
+document.getElementById('count').textContent=`${total} điều khoản đã nhập`;
+function filter(){
+ const term=q.value.trim().toLocaleLowerCase('vi'), chapter=sel.value;let shown=0;
+ document.querySelectorAll('.chapter').forEach(sec=>{
+  let sectionShown=0;
+  sec.querySelectorAll('.rule').forEach(rule=>{
+   const match=(!term||rule.dataset.search.includes(term))&&(!chapter||sec.dataset.chapter===chapter);
+   rule.style.display=match?'':'none';if(match){shown++;sectionShown++}
+  });
+  sec.style.display=sectionShown?'':'none';
+ });
+ document.getElementById('empty').style.display=shown?'none':'block';
+ document.getElementById('count').textContent=`Hiển thị ${shown}/${total} điều khoản`;
+}
+q.addEventListener('input',filter);sel.addEventListener('change',filter);
+</script>
+</body></html>
